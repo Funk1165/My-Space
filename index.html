@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html id="website" lang="en" onkeydown="jump()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #website {
+            background-color: black;
+        }
+            
+        
+        
+        
+        #character {
+            width: 100px;
+            height: 100px;
+            background-color:blue;
+            position: absolute;
+            top: 500px;
+            transition: top 200ms ease-out;
+        }
+
+        #enemy {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            position: absolute;
+            top: 500px;
+            right: 100px;
+
+        }
+
+        #enemy2 {
+            width: 100px;
+            height: 100px;
+            background-color: blueviolet;
+            position: absolute;
+            top: 250px;
+            right: 100px;
+        }
+
+
+        #score {
+            color:white;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+        }
+
+        #high-score {
+
+            color: white;
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            font-size: 20px
+        }
+
+    </style>
+</head>
+<body>
+ <div id="character"></div>
+ <div id="enemy"></div>
+ <div id="enemy2"></div>
+ <div id="score">Score: 0</div>
+ <div id="high-score">
+    <h2>High Scores</h2>
+    <ul id="scores-list"></ul>
+ </div>
+
+ 
+ <script> 
+    let enemy_left = 1000;
+    let enemy2_left = -100;
+    let on_ground = true;
+    let score = 0;
+    let enemiesPassed = 0;
+    let nextEnemyIsEnemy2 = false;
+    let enemySpeed = 12;
+    let enemy2Speed = 20;
+
+    function updateScore() {
+        document.getElementById('score').textContent = 'Score: ' + score;
+    }
+
+    function updateHighScores(newScore) {
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+        highScores.push(newScore);
+        highScores.sort((a, b) => b - a);
+        highScores = highScores.slice(0, 5);
+        localStorage.setItem('highScores', JSON.stringify(highScores));
+        displayHighScores();
+    }
+
+
+    function displayHighScores() {
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+        const scoresList = document.getElementById('scores-list');
+        scoresList.innerHTML = '';
+        highScores.forEach((score, index) => {
+            const li = document.createElement('li');
+            li.textContent = `${index + 1}. ${score}`;
+            scoresList.appendChild(li);
+        });
+    }
+
+
+
+    setInterval(()=> {
+    if (nextEnemyIsEnemy2) {
+        enemy2.style.left = enemy2_left + "px";
+        enemy2_left -= enemy2Speed;
+
+
+    }   else {
+        enemy.style.left = enemy_left + "px";
+        enemy_left -= enemySpeed;
+    }
+        
+        
+        
+        
+
+
+        if(enemy_left< 150 && enemy_left > 50 && on_ground && !nextEnemyIsEnemy2) {
+            alert('Game Over! Final Score: ' + score);
+            updateHighScores(score);
+            resetGame();
+
+        }
+
+        if (enemy2_left < 150 && enemy2_left > 50 && !on_ground && nextEnemyIsEnemy2) {
+            alert('Game Over! Final SCore: ' + score);
+            updateHighScores(score);
+            resetGame();
+        }
+
+
+
+        if(enemy_left < 0 && !nextEnemyIsEnemy2) {
+            enemy_left = 1000;
+            score += 1;
+            enemiesPassed += 1;
+            nextEnemyIsEnemy2 = (enemiesPassed >= 3 && enemiesPassed <= 7);
+            updateScore();
+            nextEnemyIsEnemy2 = Math.random() < 0.25;
+        }
+
+        if  (enemy2_left < 0 && nextEnemyIsEnemy2) {
+            enemy2_left = 1000;
+            score += 1;
+            enemiesPassed += 1;
+            updateScore();
+            nextEnemyIsEnemy2 = Math.random() < 0.25;
+        }
+
+
+        
+    }, 10);
+    
+
+
+
+    function jump() {
+        character.style.top = "250px";
+        on_ground = false;
+        setTimeout(() => {
+            character.style.top = "500px";
+        }, 200);
+        setTimeout(() => {
+            on_ground = true;
+        }, 400);
+    }
+
+    function resetGame() {
+        enemy_left = 1000;
+        enemy2_left = -100;
+        score = 0;
+        enemiesPassed = 0;
+        nextEnemyIsEnemy2 =false;
+        updateScore();
+    }
+
+    displayHighScores();
+ </script>
+</body>
+</html>
