@@ -1,0 +1,114 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Random;
+
+public class TetrisGame extends JPanel implements ActionListener {
+    private static final int ROWS = 20;
+    private static final int COLUMNS = 10;
+    private static final int TILE_SIZE = 30;
+    private static final int BOARD_WIDTH = COLUMNS * TILE_SIZE;
+    private static final int BOARD_HEIGHT = ROWS * TILE_SIZE;
+    
+    private Timer timer;
+    private boolean[][] board;
+    private Tetromino currentPiece;
+    private int pieceX = 4, pieceY = 0;
+
+    public TetrisGame() {
+        setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
+        setBackground(Color.BLACK);
+        setFocusable(true);
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                handleKeyPress(e);
+            }
+        });
+        
+        board = new boolean[ROWS][COLUMNS];
+        currentPiece = Tetromino.getRandomPiece();
+        timer = new Timer(500, this);
+        timer.start();
+    }
+
+    private void handleKeyPress(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT:
+                if (pieceX > 0) pieceX--;
+                break;
+            case KeyEvent.VK_RIGHT:
+                if (pieceX < COLUMNS - 1) pieceX++;
+                break;
+            case KeyEvent.VK_DOWN:
+                pieceY++;
+                break;
+            case KeyEvent.VK_UP:
+                currentPiece.rotate();
+                break;
+        }
+        repaint();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        pieceY++;
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Color.GRAY);
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+                if (board[i][j]) {
+                    g.fillRect(j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+        
+        g.setColor(Color.RED);
+        for (Point p : currentPiece.shape) {
+            g.fillRect((pieceX + p.x) * TILE_SIZE, (pieceY + p.y) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Tetris");
+        TetrisGame game = new TetrisGame();
+        frame.add(game);
+        frame.pack();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
+
+class Tetromino {
+    Point[] shape;
+    
+    public Tetromino(Point[] shape) {
+        this.shape = shape;
+    }
+    
+    public void rotate() {
+        for (Point p : shape) {
+            int temp = p.x;
+            p.x = -p.y;
+            p.y = temp;
+        }
+    }
+    
+    public static Tetromino getRandomPiece() {
+        Point[][] shapes = {
+            {new Point(0, 0), new Point(1, 0), new Point(0, 1), new Point(1, 1)},
+            {new Point(0, 0), new Point(-1, 0), new Point(1, 0), new Point(2, 0)},
+            {new Point(0, 0), new Point(1, 0), new Point(-1, 0), new Point(-1, 1)},
+            {new Point(0, 0), new Point(1, 0), new Point(-1, 0), new Point(1, 1)}
+        };
+        return new Tetromino(shapes[new Random().nextInt(shapes.length)]);
+    }
+}
